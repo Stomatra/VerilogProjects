@@ -1,0 +1,17 @@
+# Simulation files
+sim/*.vvp
+sim/*.vcd
+sim/*.fst
+
+# Compiler outputs
+*.out
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/.browse.*
+*.swp
+*~

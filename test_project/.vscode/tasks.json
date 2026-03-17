@@ -1,0 +1,84 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Compile Verilog",
+            "type": "shell",
+            "command": "iverilog",
+            "args": [
+                "-g2012",
+                "-Wall",
+                "-o",
+                "sim/${fileBasenameNoExtension}.vvp",
+                "-I", "rtl",
+                "rtl/*.v",
+                "${file}"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": true
+            }
+        },
+        {
+            "label": "Run Simulation",
+            "type": "shell",
+            "command": "vvp",
+            "args": [
+                "sim/${fileBasenameNoExtension}.vvp"
+            ],
+            "dependsOn": "Compile Verilog",
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared",
+                "showReuseMessage": false
+            }
+        },
+        {
+            "label": "View Waveform",
+            "type": "shell",
+            "command": "gtkwave",
+            "args": [
+                "sim/${fileBasenameNoExtension}.vcd"
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "never"
+            }
+        },
+        {
+            "label": "Full Simulation Flow",
+            "dependsOn": [
+                "Run Simulation",
+                "View Waveform"
+            ],
+            "dependsOrder": "sequence",
+            "problemMatcher": []
+        },
+        {
+            "label": "Clean Simulation Files",
+            "type": "shell",
+            "command": "Remove-Item",
+            "args": [
+                "-Path", "sim/*",
+                "-Force",
+                "-ErrorAction", "SilentlyContinue"
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always"
+            }
+        }
+    ]
+}

@@ -1,0 +1,144 @@
+flowchart LR
+  %% =========================
+  %% RV32I Single-Cycle Datapath (matching your current rv32_core style)
+  %% - One instruction per cycle (conceptually)
+  %% - IMEM/DMEM are combinational in your TB
+  %% =========================
+
+  %% --- IF: PC + IMEM ---
+  subgraph IF[IF: Fetch]
+    PC[(PC reg\npc_q)]
+    PC4[Adder\npc_plus4 = pc_q + 4]
+    IMEM[(IMEM\naddr->instr)]
+    PC -->|imem_addr[31:0]| IMEM
+    IMEM -->|instr[31:0]\nimem_rdata| ID
+    PC --> PC4
+  end
+
+  %% --- ID: Decode + RegFile + ImmGen + Control ---
+  subgraph ID[ID: Decode / Reg Read / Immediate / Control]
+    DEC[Decoder\nopcode/funct3/funct7\nrd/rs1/rs2]
+    IMM[ImmGen\nimm_i/imm_s/imm_b/imm_u/imm_j]
+    RF[(RegFile\nx0..x31)]
+    CTRL[Control Unit\n(case on opcode/funct*)]
+
+    IDIN([instr[31:0]]) --> DEC
+    IDIN --> IMM
+
+    DEC -->|rs1[4:0]| RF
+    DEC -->|rs2[4:0]| RF
+    DEC -->|rd[4:0]| RF
+
+    DEC --> CTRL
+    IMM --> CTRL
+
+    RF -->|rs1_val[31:0]| EX
+    RF -->|rs2_val[31:0]| EX
+
+    IMM -->|imm_*[31:0]| EX
+
+    CTRL -->|rf_we| RF
+    CTRL -->|wb_sel| WB
+    CTRL -->|alu_op, alu_src| EX
+    CTRL -->|dmem_valid,we,wstrb| MEM
+    CTRL -->|pc_sel| NPC
+  end
+
+  %% Hook instr into ID subgraph cleanly
+  IMEM -->|instr[31:0]| IDIN
+
+  %% --- EX: ALU + Branch compare + target address calc ---
+  subgraph EX[EX: Execute]
+    ALUA[ALU A MUX]
+    ALUB[ALU B MUX]
+    ALU[ALU\nadd/sub/and/or/xor/slt/shift]
+    BR[BranchCmp\n(beq/bne/blt/bge...)]
+    JALR[Align\njalr_target = (rs1+imm_i)&~1]
+
+    ALUA --> ALU
+    ALUB --> ALU
+
+    %% Inputs to muxes
+    RS1([rs1_val]) --> ALUA
+    RS2([rs2_val]) --> ALUB
+    IMMI([imm_i]) --> ALUB
+    IMMU([imm_u]) --> WB
+    PCEX([pc_q]) --> ALUA
+
+    %% Compare for branch
+    RS1 --> BR
+    RS2 --> BR
+    BR -->|br_take| NPC
+
+    %% jalr target
+    RS1 --> JALR
+    IMMI --> JALR
+    JALR -->|jalr_tgt[31:0]| NPC
+
+    %% ALU result
+    ALU -->|alu_y[31:0]| WB
+    ALU -->|addr_candidate| MEM
+  end
+
+  %% Provide imm_* nodes (visual)
+  IMM -->|imm_i| IMMI
+  IMM -->|imm_u| IMMU
+  RF --> RS1
+  RF --> RS2
+  PC --> PCEX
+
+  %% --- MEM: Data memory access ---
+  subgraph MEM[MEM: Load/Store]
+    ADDR[AddrCalc\nload: rs1+imm_i\nstore: rs1+imm_s]
+    DMEM[(DMEM)]
+    LD[Load Extract\nLB/LH/LW/LBU/LHU\n(sign/zero extend)]
+
+    ADDR -->|dmem_addr[31:0]| DMEM
+    RS2 -->|store_data rs2_val| DMEM
+    DMEM -->|dmem_rdata[31:0]| LD
+    LD -->|load_data[31:0]| WB
+
+    CTRL -->|dmem_valid| DMEM
+    CTRL -->|dmem_we| DMEM
+    CTRL -->|dmem_wstrb[3:0]| DMEM
+    DMEM -->|dmem_addr/dmem_wdata| DMEM
+  end
+
+  %% --- WB: Writeback mux ---
+  subgraph WB[WB: Writeback]
+    WBMUX[WB MUX]
+    RFWD([rf_wdata[31:0]])
+
+    WBMUX --> RFWD
+    RFWD --> RF
+
+    %% WB inputs
+    ALU --> WBMUX
+    LD --> WBMUX
+    IMMU --> WBMUX
+    PC4 --> WBMUX
+    AUIPC[AUIPC add\npc_q + imm_u] --> WBMUX
+  end
+
+  %% --- NPC: Next PC selection ---
+  subgraph NPC[NPC: Next PC]
+    BR_TGT[Branch target\npc_q + imm_b]
+    J_TGT[JAL target\npc_q + imm_j]
+    PCMUX[PC MUX\n(pc_sel)]
+    PCN([pc_n[31:0]])
+
+    PC4 --> PCMUX
+    BR_TGT --> PCMUX
+    J_TGT --> PCMUX
+    JALR --> PCMUX
+    PCMUX --> PCN
+    PCN --> PC
+  end
+
+  %% targets need pc and immediates
+  PCEX --> BR_TGT
+  PCEX --> J_TGT
+  IMM -->|imm_b| BR_TGT
+  IMM -->|imm_j| J_TGT
+  PCEX --> AUIPC
+  IMM --> AUIPC
