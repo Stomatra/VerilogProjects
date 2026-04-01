@@ -1,12 +1,25 @@
 #!/usr/bin/env bash
+# ============================================================
 # run_all_tests.sh
-# Batch-run all RV32I instruction unit tests and print a PASS/FAIL report.
+# ------------------------------------------------------------
+# 功能:
+#   批量运行 rv32/tests 下所有 RV32I 指令单元测试（.hex），并输出 PASS/FAIL 报表。
 #
-# Usage:
+# 运行方式:
 #   cd rv32/
 #   bash run_all_tests.sh
 #
-# Requirements: iverilog + vvp in PATH (Icarus Verilog)
+# 依赖:
+#   - iverilog + vvp（Icarus Verilog），并且已加入 PATH。
+#
+# 测试链路（核心理解点）:
+#   1) 先用 iverilog 只编译一次 testbench，生成 sim/tb_rv32.vvp。
+#   2) 遍历 tests/*.hex，每个用例用 vvp 运行一次：
+#        vvp sim/tb_rv32.vvp "+hex=tests/xxx.hex"
+#   3) TB 内部通过 $value$plusargs("hex=%s", hex_path) 拿到路径，
+#      再用 $readmemh(hex_path, rom) 加载 ROM。
+#   4) TB 最终会打印一行 [TB] PASS/FAIL/TIMEOUT，本脚本取最后一条 [TB] 行做判定。
+# ============================================================
 
 set -euo pipefail
 
@@ -26,6 +39,10 @@ echo ""
 
 # ---- Compile ----
 echo "[INFO] Compiling testbench..."
+
+# -g2012: 允许 SystemVerilog 语法（本工程 .v 文件里用到了 always_comb/always_ff 等）
+# -I rtl : 让 `include "rv32_pkg.vh"` 能找到头文件
+# 下面的管道只是把编译输出里可能的 warning/error 抽出来显示，其它行过滤掉。
 iverilog -g2012 -o "$VVP" -I rtl rtl/*.v tb/tb_rv32.v 2>&1 \
   | grep -v "^$" | grep -E "error:|warning:" || true
 
@@ -44,6 +61,9 @@ FAIL_LIST=()
 
 for hex_file in "$TESTS_DIR"/*.hex; do
     name=$(basename "$hex_file" .hex)
+
+    # 运行单个用例：将 hex 路径以 plusarg 的形式传入 TB
+    # TB 会打印多行 [TB] ...，这里取最后一条 [TB] 行作为最终状态。
     output=$(vvp "$VVP" "+hex=$hex_file" 2>/dev/null)
     tb_line=$(echo "$output" | grep '\[TB\]' | tail -1)
 

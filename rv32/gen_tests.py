@@ -1,9 +1,28 @@
 #!/usr/bin/env python3
-"""Generate RV32I test hex files for all 37 instructions."""
+"""生成 RV32I 37 条指令的单元测试 hex 文件（教学脚本）。
+
+输出位置:
+    - 默认写入本文件同级目录下的 tests/*.hex
+
+与 TB 的约定（非常重要）:
+    - 这些测试程序会在末尾通过 store 向数据 RAM 写入“结果标志”：
+        - 写 ram[1] = 1          表示 PASS
+        - 写 ram[1] = 0xDEAD_BEEF 表示 FAIL
+    - testbench 会在每个周期监视 ram[1]，一旦看到 PASS/FAIL 就结束仿真。
+
+脚本结构概览:
+    1) 指令编码器：r_type/i_type/s_type/b_type/u_type/j_type
+    2) 常用指令包装：ADDI/LW/SW/BEQ/...（便于写测试用例）
+    3) PASS/FAIL 序列：pass_seq()/fail_seq()
+    4) 标准模板：alu_test() / branch_test() 快速拼装测试程序
+    5) 为每条指令生成一个 tests/xxx.hex
+"""
 
 import os
 
-# ---------- Instruction encoders ----------
+# ---------- 指令编码器（拼 32 位指令字） ----------
+# 说明：这些函数只负责把字段按 RISC-V 手册的 bit 位置打包成 32bit 指令。
+#       立即数传入时会被 mask 到对应宽度（例如 I/S 的 imm12）。
 
 def r_type(funct7, rs2, rs1, funct3, rd, opcode):
     return ((funct7 & 0x7F) << 25) | ((rs2 & 0x1F) << 20) | \
@@ -22,6 +41,7 @@ def s_type(imm, rs2, rs1, funct3, opcode):
            ((imm12 & 0x1F) << 7) | (opcode & 0x7F)
 
 def b_type(imm, rs2, rs1, funct3, opcode):
+    # B-type 偏移是 13bit，且 bit0 永远为 0（2 字节对齐），这里先把 imm 做对齐 mask。
     imm_val = imm & 0x1FFE  # 13-bit, bit0 always 0 (mask to keep even)
     imm12   = (imm_val >> 12) & 1
     imm10_5 = (imm_val >> 5)  & 0x3F
@@ -35,6 +55,7 @@ def u_type(imm20, rd, opcode):
     return ((imm20 & 0xFFFFF) << 12) | ((rd & 0x1F) << 7) | (opcode & 0x7F)
 
 def j_type(imm, rd, opcode):
+    # J-type 偏移是 21bit，且 bit0 永远为 0（2 字节对齐）
     imm_val  = imm & 0x1FFFFE  # 21-bit, bit0 always 0
     imm20    = (imm_val >> 20) & 1
     imm10_1  = (imm_val >> 1)  & 0x3FF
@@ -43,7 +64,7 @@ def j_type(imm, rd, opcode):
     return (imm20 << 31) | (imm10_1 << 21) | (imm11 << 20) | \
            (imm19_12 << 12) | ((rd & 0x1F) << 7) | (opcode & 0x7F)
 
-# ---------- Opcodes ----------
+# ---------- 主 opcode 常量（instr[6:0]） ----------
 OPC_LUI    = 0b0110111
 OPC_AUIPC  = 0b0010111
 OPC_JAL    = 0b1101111
@@ -54,7 +75,8 @@ OPC_STORE  = 0b0100011
 OPC_OPIMM  = 0b0010011
 OPC_OP     = 0b0110011
 
-# ---------- Common instruction helpers ----------
+# ---------- 常用指令包装（便于写测试用例） ----------
+# 说明：下面这些函数返回 32bit 指令字（Python int），最终会被写入 .hex。
 def NOP():                       return i_type(0, 0, 0, 0, OPC_OPIMM)  # addi x0,x0,0
 def ADDI(rd, rs1, imm):          return i_type(imm, rs1, 0b000, rd, OPC_OPIMM)
 def LUI_I(rd, imm20):            return u_type(imm20, rd, OPC_LUI)
@@ -95,11 +117,14 @@ def SRA(rd, rs1, rs2):           return r_type(0b0100000, rs2, rs1, 0b101, rd, O
 def OR(rd, rs1, rs2):            return r_type(0b0000000, rs2, rs1, 0b110, rd, OPC_OP)
 def AND_R(rd, rs1, rs2):         return r_type(0b0000000, rs2, rs1, 0b111, rd, OPC_OP)
 
-# ---------- PASS/FAIL blocks ----------
-# PASS: store 1 to ram[1] (addr=4), then halt
-# FAIL: store DEADBEEF to ram[1] (addr=4), then halt
-# 0xDEADBEEF: LUI rd, 0xDEADC (=> 0xDEADC000), ADDI rd,rd, 0xEEF (signed=-273)
-# 0xDEADC000 + (-273) = 0xDEADBEEF
+# ---------- PASS/FAIL 序列（与 TB 约定） ----------
+# PASS: 向 ram[1]（地址 4）写入 1，然后进入死循环（JAL x0,0）
+# FAIL: 向 ram[1]（地址 4）写入 0xDEAD_BEEF，然后进入死循环
+#
+# 注意：很多用例会用到 0xDEAD_BEEF 常量。
+# 这里用两条指令构造它：
+#   0xDEAD_BEEF = (LUI 0xDEADC -> 0xDEADC000) + (ADDI 0xEEF -> -273)
+# 即 0xDEADC000 + (-273) = 0xDEADBEEF
 
 def pass_seq(rd=5):
     """3 instructions: set 1, store to ram[1], halt"""
@@ -125,15 +150,16 @@ def write_hex(path, instrs):
         for instr in instrs:
             f.write(f'{instr:08x}\n')
 
-# ---------- Standard ALU test template ----------
-# Layout:
-#   [0..N-1]: setup + execute + load expected
-#   [N]:      BNE result, expected, +offset_to_fail
-#   [N+1..N+3]: PASS block (3 instrs)
-#   [N+4..N+7]: FAIL block (4 instrs)
+# ---------- 标准 ALU 测试模板 ----------
+# 布局（所有“结果可比较”的指令都复用这个模板）：
+#   [0..N-1]   : setup + execute + 计算 expected
+#   [N]        : BNE result, expected, +offset_to_fail
+#   [N+1..N+3] : PASS block（3 条）
+#   [N+4..N+7] : FAIL block（4 条）
 #
-# BNE at byte offset (N*4), FAIL at byte offset ((N+4)*4)
-# offset = (N+4)*4 - N*4 = 16 (always +16 for this layout)
+# 因为 PASS block 固定 3 条（12 字节），FAIL block 紧跟其后固定起点，
+# 所以从 BNE 跳到 FAIL 的 offset 恒为 16 字节：
+#   FAIL_PC - BNE_PC = (N+4)*4 - N*4 = 16
 
 BNE_TO_FAIL = 16  # fixed: BNE jumps +16 bytes to FAIL
 
@@ -143,7 +169,7 @@ def alu_test(setup_instrs, result_reg, expected_reg):
     return setup_instrs + [bne_instr] + pass_seq() + fail_seq()
 
 # =============================================
-# Test programs
+# 生成测试程序（每个指令 1 个 .hex）
 # =============================================
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tests')
 
@@ -222,15 +248,17 @@ jalr_prog = [
 ]
 write_hex(f'{OUT}/jalr.hex', jalr_prog)
 
-# ---- Branch tests (5-10): beq, bne, blt, bge, bltu, bgeu ----
-# Pattern: setup regs, branch (should be taken), jump to pass
-# If branch not taken: fall through to FAIL
-# Branch layout:
-# PC=0:  setup x1
-# PC=4:  setup x2
-# PC=8:  <branch> +20  -> jump to PC=28 (PASS) if taken
-# PC=12: FAIL block (4 instrs)
-# PC=28: PASS block (3 instrs)
+# ---- 分支测试 (5-10): beq, bne, blt, bge, bltu, bgeu ----
+# 测试思路：这些分支都“应该被执行为跳转成立（TAKEN）”。
+#   - 如果分支成立：跳过 FAIL，落到 PASS。
+#   - 如果分支不成立：顺序执行会落入 FAIL。
+#
+# 布局：
+#   PC=0 : setup x1
+#   PC=4 : setup x2
+#   PC=8 : <branch> +20  -> 若跳转成立，跳到 PC=28 (PASS)
+#   PC=12: FAIL block (4 条)
+#   PC=28: PASS block (3 条)
 BRANCH_PASS_OFFSET = 20  # from branch instruction at PC=8
 
 def branch_test(setup1, setup2, branch_instr_fn, comment=""):

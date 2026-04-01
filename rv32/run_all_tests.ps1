@@ -1,14 +1,29 @@
+# ============================================================
 # run_all_tests.ps1
-# Batch-run all RV32I instruction unit tests and print a PASS/FAIL report.
+# ------------------------------------------------------------
+# 功能:
+#   批量运行 rv32/tests 下所有 RV32I 指令单元测试（.hex），并输出 PASS/FAIL 报表。
 #
-# Usage (from the rv32/ directory):
+# 运行方式（在 rv32/ 目录下）:
 #   pwsh -File run_all_tests.ps1
-#   # or in Windows PowerShell:
+#   # 或 Windows PowerShell:
 #   .\run_all_tests.ps1
 #
-# Requirements: iverilog + vvp in PATH (Icarus Verilog)
+# 依赖:
+#   - iverilog + vvp（Icarus Verilog），并且已加入 PATH。
+#
+# 测试链路（核心理解点）:
+#   1) 先用 iverilog 只编译一次 testbench，生成 sim\tb_rv32.vvp。
+#   2) 遍历 tests\*.hex，每个用例用 vvp 运行一次：
+#        vvp sim\tb_rv32.vvp "+hex=...\xxx.hex"
+#   3) TB 内部通过 $value$plusargs("hex=%s", hex_path) 拿到路径，
+#      再用 $readmemh(hex_path, rom) 加载 ROM。
+#   4) TB 最终会打印一行 [TB] PASS/FAIL/TIMEOUT，本脚本取最后一条 [TB] 行做判定。
+# ============================================================
 
 $ErrorActionPreference = "Stop"
+
+# 将工作目录切到脚本所在目录，避免从别处调用时相对路径失效
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $ScriptDir
 
@@ -25,6 +40,10 @@ Write-Host ""
 
 # ---- Compile ----
 Write-Host "[INFO] Compiling testbench..."
+
+# -g2012: 允许 SystemVerilog 语法（本工程 .v 文件里用到了 always_comb/always_ff 等）
+# -I rtl : 让 `include "rv32_pkg.vh"` 能找到头文件
+# 这里把 rtl 下所有 .v 都喂给 iverilog，再加上 tb\tb_rv32.v
 $ivArgs = @("-g2012", "-o", $VvpFile, "-I", "rtl") +
           (Get-ChildItem rtl\*.v | ForEach-Object { $_.FullName }) +
           @("tb\tb_rv32.v")
@@ -46,6 +65,8 @@ Get-ChildItem "$TestsDir\*.hex" | Sort-Object Name | ForEach-Object {
     $name    = $_.BaseName
     $hexFile = $_.FullName
 
+    # 运行单个用例：将 hex 路径以 plusarg 的形式传入 TB
+    # TB 会打印多行 [TB] ...，这里取最后一条 [TB] 行作为最终状态。
     $output  = & vvp $VvpFile "+hex=$hexFile" 2>$null
     $tbLine  = ($output | Select-String '\[TB\]' | Select-Object -Last 1).Line
 
