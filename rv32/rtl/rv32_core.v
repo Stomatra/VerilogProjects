@@ -44,7 +44,7 @@ module rv32_core (
   localparam logic [3:0] ALU_SLL  = 4'd7; // 逻辑左移
   localparam logic [3:0] ALU_SRL  = 4'd8; // 逻辑右移
   localparam logic [3:0] ALU_SRA  = 4'd9; // 算术右移
-
+  
   // ----------------------------
   // ALU 操作数来源选择
   // ----------------------------
@@ -441,3 +441,5 @@ module rv32_core (
   end
 
 endmodule
+
+//this is a test message
