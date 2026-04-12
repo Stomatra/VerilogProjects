@@ -117,6 +117,25 @@ def SRA(rd, rs1, rs2):           return r_type(0b0100000, rs2, rs1, 0b101, rd, O
 def OR(rd, rs1, rs2):            return r_type(0b0000000, rs2, rs1, 0b110, rd, OPC_OP)
 def AND_R(rd, rs1, rs2):         return r_type(0b0000000, rs2, rs1, 0b111, rd, OPC_OP)
 
+# ---------- 五级流水线辅助 ----------
+# 当前 core 是 5-stage pipeline，且“暂时没有 forwarding / hazard detection”。
+# 因此测试程序里需要在“写寄存器 -> 下一条读该寄存器”之间插入若干 NOP，
+# 让写回先到达 WB 阶段，再让消费者在 ID 阶段读到新值。
+PIPELINE_GAP = 3
+
+def gap(n=PIPELINE_GAP):
+    """Return n pipeline-bubble NOPs."""
+    return [NOP()] * n
+
+def pad_linear(instrs, after_last=True):
+    """Insert PIPELINE_GAP NOPs after each instruction in a linear sequence."""
+    out = []
+    for idx, instr in enumerate(instrs):
+        out.append(instr)
+        if after_last or idx != len(instrs) - 1:
+            out.extend(gap())
+    return out
+
 # ---------- PASS/FAIL 序列（与 TB 约定） ----------
 # PASS: 向 ram[1]（地址 4）写入 1，然后进入死循环（JAL x0,0）
 # FAIL: 向 ram[1]（地址 4）写入 0xDEAD_BEEF，然后进入死循环
@@ -127,18 +146,21 @@ def AND_R(rd, rs1, rs2):         return r_type(0b0000000, rs2, rs1, 0b111, rd, O
 # 即 0xDEADC000 + (-273) = 0xDEADBEEF
 
 def pass_seq(rd=5):
-    """3 instructions: set 1, store to ram[1], halt"""
+    """Pipeline-safe PASS sequence."""
     return [
         ADDI(rd, 0, 1),      # rd = 1
+        *gap(),              # wait for rd to reach WB before SW reads it
         SW(rd, 0, 4),        # sw rd, 4(x0) -> ram[1] = 1 (PASS)
         JAL_HALT(),          # infinite loop
     ]
 
 def fail_seq(rd=5):
-    """4 instructions: set DEADBEEF, store to ram[1], halt"""
+    """Pipeline-safe FAIL sequence."""
     return [
         LUI_I(rd, 0xDEADC),  # rd = 0xDEADC000
+        *gap(),              # wait before dependent ADDI reads rd
         ADDI(rd, rd, 0xEEF), # rd = 0xDEADC000 + (-273) = 0xDEADBEEF
+        *gap(),              # wait before SW reads rd
         SW(rd, 0, 4),        # ram[1] = DEADBEEF (FAIL)
         JAL_HALT(),          # infinite loop
     ]
@@ -150,23 +172,14 @@ def write_hex(path, instrs):
         for instr in instrs:
             f.write(f'{instr:08x}\n')
 
-# ---------- 标准 ALU 测试模板 ----------
-# 布局（所有“结果可比较”的指令都复用这个模板）：
-#   [0..N-1]   : setup + execute + 计算 expected
-#   [N]        : BNE result, expected, +offset_to_fail
-#   [N+1..N+3] : PASS block（3 条）
-#   [N+4..N+7] : FAIL block（4 条）
-#
-# 因为 PASS block 固定 3 条（12 字节），FAIL block 紧跟其后固定起点，
-# 所以从 BNE 跳到 FAIL 的 offset 恒为 16 字节：
-#   FAIL_PC - BNE_PC = (N+4)*4 - N*4 = 16
-
-BNE_TO_FAIL = 16  # fixed: BNE jumps +16 bytes to FAIL
-
 def alu_test(setup_instrs, result_reg, expected_reg):
-    """Build a standard ALU test program."""
-    bne_instr = BNE(result_reg, expected_reg, BNE_TO_FAIL)
-    return setup_instrs + [bne_instr] + pass_seq() + fail_seq()
+    """Build a pipeline-safe ALU-style test program."""
+    setup = pad_linear(setup_instrs, after_last=True)
+    pass_ = pass_seq()
+    fail_ = fail_seq()
+    bne_to_fail = 4 * (1 + len(pass_))
+    bne_instr = BNE(result_reg, expected_reg, bne_to_fail)
+    return setup + [bne_instr] + pass_ + fail_
 
 # =============================================
 # 生成测试程序（每个指令 1 个 .hex）
@@ -192,60 +205,37 @@ write_hex(f'{OUT}/auipc.hex', alu_test(
 ))
 
 # ---- 3. JAL ----
-# Layout:
-# PC=0:  jal x1, +20   -> jump to PC=20, x1=4
-# PC=4:  FAIL block (3 instr) -- not reached if JAL works
-# PC=8:  lui x5, DEADC
-# PC=12: addi x5, x5, 0xEEF
-# PC=16: sw x5, 4(x0)
-# PC=20: (target) check x1 == 4
-# PC=24: addi x2, x0, 4  (expected)
-# PC=28: bne x1, x2, +16 -> fail at PC=44
-# PC=32: PASS
-# PC=36: sw x5, 4(x0)   <- wait, x5 overwritten
-# Need cleaner layout...
+# 跳转成功后：
+#   - x1 应写回返回地址 4
+#   - 跳到检查块，再用 BNE 判定 PASS/FAIL
+jal_fail_fallthrough = fail_seq(5)
+jal_pass = pass_seq(5)
+jal_fail_check = fail_seq(5)
+jal_check = pad_linear([ADDI(2, 0, 4)], after_last=True) + [
+    BNE(1, 2, 4 * (1 + len(jal_pass)))
+] + jal_pass + jal_fail_check
 jal_prog = [
-    JAL_I(1, 24),            # PC=0:  jal x1, +24 -> PC=24, x1=4
-    LUI_I(5, 0xDEADC),      # PC=4:  FAIL path
-    ADDI(5, 5, 0xEEF),      # PC=8:
-    SW(5, 0, 4),             # PC=12:
-    JAL_HALT(),              # PC=16: halt
-    NOP(),                   # PC=20: alignment pad
-    ADDI(2, 0, 4),           # PC=24: expected ret addr = 4
-    BNE(1, 2, 16),           # PC=28: fail if x1 != 4 -> PC=44
-    ADDI(5, 0, 1),           # PC=32: PASS
-    SW(5, 0, 4),             # PC=36:
-    JAL_HALT(),              # PC=40: halt
-    LUI_I(5, 0xDEADC),      # PC=44: FAIL
-    ADDI(5, 5, 0xEEF),      # PC=48:
-    SW(5, 0, 4),             # PC=52:
-    JAL_HALT(),              # PC=56: halt
-]
+    JAL_I(1, 4 * (1 + len(jal_fail_fallthrough))),  # jump over fallthrough FAIL block
+] + jal_fail_fallthrough + jal_check
 write_hex(f'{OUT}/jal.hex', jal_prog)
 
 # ---- 4. JALR ----
-# PC=0:  addi x1, x0, 28   -> x1 = 28 (target addr)
-# PC=4:  jalr x2, x1, 0    -> PC=28, x2=8
-# PC=8:  FAIL path
-# PC=28: check x2==8, PASS/FAIL
+# 先把目标地址写进 x1，再通过 JALR 跳过去。
+# 由于写 x1 与读 x1 之间存在 RAW hazard，这里显式插入气泡。
+jalr_fail_fallthrough = fail_seq(5)
+jalr_pass = pass_seq(5)
+jalr_fail_check = fail_seq(5)
+jalr_prefix_len = 1 + PIPELINE_GAP + 1  # addi target + bubbles + jalr
+jalr_target_pc = 4 * (jalr_prefix_len + len(jalr_fail_fallthrough))
+jalr_return_pc = 4 * jalr_prefix_len
+jalr_check = pad_linear([ADDI(3, 0, jalr_return_pc)], after_last=True) + [
+    BNE(2, 3, 4 * (1 + len(jalr_pass)))
+] + jalr_pass + jalr_fail_check
 jalr_prog = [
-    ADDI(1, 0, 28),          # PC=0:  x1 = 28 (target)
-    JALR_I(2, 1, 0),         # PC=4:  jump to x1+0=28, x2=8
-    LUI_I(5, 0xDEADC),      # PC=8:  FAIL path
-    ADDI(5, 5, 0xEEF),      # PC=12:
-    SW(5, 0, 4),             # PC=16:
-    JAL_HALT(),              # PC=20: halt
-    NOP(),                   # PC=24: pad
-    ADDI(3, 0, 8),           # PC=28: expected return addr = 8
-    BNE(2, 3, 16),           # PC=32: fail if x2 != 8 -> PC=48
-    ADDI(5, 0, 1),           # PC=36: PASS
-    SW(5, 0, 4),             # PC=40:
-    JAL_HALT(),              # PC=44: halt
-    LUI_I(5, 0xDEADC),      # PC=48: FAIL
-    ADDI(5, 5, 0xEEF),      # PC=52:
-    SW(5, 0, 4),             # PC=56:
-    JAL_HALT(),              # PC=60: halt
-]
+    ADDI(1, 0, jalr_target_pc),  # x1 = target PC
+    *gap(),                      # wait before JALR reads x1
+    JALR_I(2, 1, 0),             # x2 = return PC, PC = x1
+] + jalr_fail_fallthrough + jalr_check
 write_hex(f'{OUT}/jalr.hex', jalr_prog)
 
 # ---- 分支测试 (5-10): beq, bne, blt, bge, bltu, bgeu ----
@@ -253,22 +243,16 @@ write_hex(f'{OUT}/jalr.hex', jalr_prog)
 #   - 如果分支成立：跳过 FAIL，落到 PASS。
 #   - 如果分支不成立：顺序执行会落入 FAIL。
 #
-# 布局：
-#   PC=0 : setup x1
-#   PC=4 : setup x2
-#   PC=8 : <branch> +20  -> 若跳转成立，跳到 PC=28 (PASS)
-#   PC=12: FAIL block (4 条)
-#   PC=28: PASS block (3 条)
-BRANCH_PASS_OFFSET = 20  # from branch instruction at PC=8
-
 def branch_test(setup1, setup2, branch_instr_fn, comment=""):
-    """Branch should be TAKEN. Jump offset = +20 from branch at PC=8."""
+    """Branch should be TAKEN in the pipeline-safe test."""
     fail = fail_seq(5)
     pass_ = pass_seq(5)
-    prog = [
+    branch_pass_offset = 4 * (1 + len(fail))
+    prog = pad_linear([
         setup1,                                  # PC=0
         setup2,                                  # PC=4
-        branch_instr_fn(BRANCH_PASS_OFFSET),     # PC=8: branch -> PC=28
+    ], after_last=True) + [
+        branch_instr_fn(branch_pass_offset),     # 跳过 FAIL block 落到 PASS
     ] + fail + pass_
     return prog
 
