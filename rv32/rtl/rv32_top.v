@@ -3,45 +3,50 @@
 // ============================================================
 // rv32_top
 // ------------------------------------------------------------
-// 功能:
-//   顶层封装模块（wrapper）。
-//   - 不实现额外逻辑，仅例化 rv32_core 并把指令/数据存储器端口引出。
-//
-// 这样做的好处:
-//   - 方便 testbench/SoC 顶层直接连接内核
-//   - 后续如果要加总线/仲裁/外设，可以在 top 层扩展
+// Wrapper module: instantiates rv32_core and exposes all
+// instruction/data memory ports (including ready/valid signals)
+// to the testbench or SoC integration layer.
 // ============================================================
 module rv32_top (
-  input  wire        clk,      // 时钟
-  input  wire        rst_n,     // 低有效复位
+  input  wire        clk,
+  input  wire        rst_n,
 
-  // instruction memory port（指令存储器：只读）
-  output wire [31:0] imem_addr,  // 取指地址（字节地址）
-  input  wire [31:0] imem_rdata, // 指令数据（组合读）
+  // Instruction memory port
+  output wire        imem_valid,        // core requesting instruction
+  output wire [31:0] imem_addr,         // fetch address (byte address)
+  input  wire        imem_ready,        // memory accepts request
+  input  wire        imem_rdata_valid,  // instruction data valid
+  input  wire [31:0] imem_rdata,        // instruction word
 
-  // data memory port（数据存储器：读写）
-  output wire        dmem_valid, // 数据口请求有效
-  output wire        dmem_we,    // 数据口写使能（1=写，0=读）
-  output wire [3:0]  dmem_wstrb, // 写字节使能（小端 4 lanes）
-  output wire [31:0] dmem_addr,  // 数据口地址（字节地址）
-  output wire [31:0] dmem_wdata, // 写数据
-  input  wire [31:0] dmem_rdata  // 读数据（组合读）
+  // Data memory port
+  output wire        dmem_valid,        // core requesting data access
+  output wire        dmem_we,           // 1=store, 0=load
+  output wire [3:0]  dmem_wstrb,        // byte enables (little-endian)
+  output wire [31:0] dmem_addr,         // data address (byte address)
+  output wire [31:0] dmem_wdata,        // write data
+  input  wire        dmem_ready,        // memory accepts request
+  input  wire        dmem_rdata_valid,  // read data valid (loads)
+  input  wire [31:0] dmem_rdata         // read data
 );
 
-  // 例化核心
   rv32_core u_core (
-    .clk(clk),
-    .rst_n(rst_n),
+    .clk              (clk),
+    .rst_n            (rst_n),
 
-    .imem_addr(imem_addr),
-    .imem_rdata(imem_rdata),
+    .imem_valid       (imem_valid),
+    .imem_addr        (imem_addr),
+    .imem_ready       (imem_ready),
+    .imem_rdata_valid (imem_rdata_valid),
+    .imem_rdata       (imem_rdata),
 
-    .dmem_valid(dmem_valid),
-    .dmem_we(dmem_we),
-    .dmem_wstrb(dmem_wstrb),
-    .dmem_addr(dmem_addr),
-    .dmem_wdata(dmem_wdata),
-    .dmem_rdata(dmem_rdata)
+    .dmem_valid       (dmem_valid),
+    .dmem_we          (dmem_we),
+    .dmem_wstrb       (dmem_wstrb),
+    .dmem_addr        (dmem_addr),
+    .dmem_wdata       (dmem_wdata),
+    .dmem_ready       (dmem_ready),
+    .dmem_rdata_valid (dmem_rdata_valid),
+    .dmem_rdata       (dmem_rdata)
   );
 
 endmodule

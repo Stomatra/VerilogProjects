@@ -38,6 +38,20 @@ Write-Host " RV32I Instruction Unit Test Suite"
 Write-Host "=============================================="
 Write-Host ""
 
+# ---- Generate tests ----
+Write-Host "[INFO] Regenerating pipeline-safe test hex files..."
+if (Get-Command py -ErrorAction SilentlyContinue) {
+    & py -3 gen_tests.py
+} else {
+    & python gen_tests.py
+}
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "[ERROR] Test generation failed – aborting."
+    exit 1
+}
+Write-Host "[INFO] Test generation OK"
+Write-Host ""
+
 # ---- Compile ----
 Write-Host "[INFO] Compiling testbench..."
 
@@ -47,6 +61,7 @@ Write-Host "[INFO] Compiling testbench..."
 $ivArgs = @("-g2012", "-o", $VvpFile, "-I", "rtl") +
           (Get-ChildItem rtl\*.v | ForEach-Object { $_.FullName }) +
           @("tb\tb_rv32.v")
+if (Test-Path $VvpFile) { Remove-Item $VvpFile -Force }
 & iverilog @ivArgs
 if ($LASTEXITCODE -ne 0) {
     Write-Error "[ERROR] Compilation failed – aborting."
