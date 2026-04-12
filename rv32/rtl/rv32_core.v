@@ -481,7 +481,7 @@ module rv32_core (
   assign ex_alu_a = (idex_alu_src_a_sel == ALU_SRC_A_PC) ? idex_pc : idex_rs1_val;
 
   always_comb begin
-    case (idex_alu_src_b_sel)
+    unique case (idex_alu_src_b_sel)
       ALU_SRC_B_RS2:   ex_alu_b = idex_rs2_val;
       ALU_SRC_B_IMM_I: ex_alu_b = idex_imm_i;
       ALU_SRC_B_IMM_S: ex_alu_b = idex_imm_s;
@@ -599,7 +599,7 @@ module rv32_core (
 
   always_comb begin
     // Select byte/halfword from dmem_rdata based on address alignment
-    case (exmem_alu_y[1:0])
+    unique case (exmem_alu_y[1:0])
       2'd0: mem_load_byte = dmem_rdata[7:0];
       2'd1: mem_load_byte = dmem_rdata[15:8];
       2'd2: mem_load_byte = dmem_rdata[23:16];
@@ -610,7 +610,7 @@ module rv32_core (
     mem_load_half = exmem_alu_y[1] ? dmem_rdata[31:16] : dmem_rdata[15:0];
 
     // Sign/zero-extend based on funct3
-    case (exmem_funct3)
+    unique case (exmem_funct3)
       3'b000: mem_load_data = {{24{mem_load_byte[7]}}, mem_load_byte}; // LB
       3'b001: mem_load_data = {{16{mem_load_half[15]}}, mem_load_half}; // LH
       3'b010: mem_load_data = dmem_rdata;                              // LW
