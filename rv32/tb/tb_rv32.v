@@ -77,17 +77,19 @@ module tb_rv32;
   // ----------------------------
   // Zero-wait memory model
   // ----------------------------
-  // IMEM: always ready; rdata_valid fires combinatorially when valid
+  // IMEM: always ready; rdata_valid fires combinatorially when valid.
+  // Gate on rst_n to avoid latching garbage during reset.
   always @(*) begin
     imem_ready       = 1'b1;
-    imem_rdata_valid = imem_valid;      // zero-wait: data ready same cycle
+    imem_rdata_valid = rst_n && imem_valid;  // zero-wait: data ready same cycle
     imem_rdata       = rom[imem_addr[9:2]];
   end
 
-  // DMEM: always ready; rdata_valid fires combinatorially for loads
+  // DMEM: always ready; rdata_valid fires combinatorially for loads.
+  // Gate on rst_n to avoid spurious valid assertions during reset.
   always @(*) begin
     dmem_ready       = 1'b1;
-    dmem_rdata_valid = dmem_valid & ~dmem_we; // loads only
+    dmem_rdata_valid = rst_n && dmem_valid & ~dmem_we; // loads only
     dmem_rdata       = ram[dmem_addr[9:2]];
   end
 

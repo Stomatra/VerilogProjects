@@ -236,9 +236,9 @@ module rv32_core (
   // ===========================================================
   // IMEM interface
   // ===========================================================
-  // Always requesting: the PC is stable when stalled, so re-issuing
-  // the same address is safe.
-  assign imem_valid = 1'b1;
+  // De-assert during reset so no spurious fetches are visible to memory.
+  // During a stall the PC is frozen, so re-issuing the same address is safe.
+  assign imem_valid = rst_n;
   assign imem_addr  = pc_q;
 
   // Stall while instruction data has not arrived
@@ -261,7 +261,12 @@ module rv32_core (
                         (~exmem_mem_write && ~dmem_rdata_valid)
                       );
 
-  // Global stall and flush
+  // Global stall and flush.
+  // flush_ex is gated by ~stall: when a stall is active the pipeline is frozen,
+  // so the branch/jump instruction stays in the ID/EX register.  On the first
+  // cycle after the stall clears, ex_pc_redirect is still asserted (because
+  // ID/EX still holds the branch/jump), so flush_ex fires then and both
+  // redirects the PC and clears IF/ID and ID/EX in the correct order.
   assign stall    = imem_stall | dmem_stall;
   assign flush_ex = ex_pc_redirect && ~stall;
 
@@ -284,10 +289,11 @@ module rv32_core (
       ifid_instr <= 32'h0000_0013; // NOP (addi x0,x0,0)
       ifid_valid <= 1'b0;
     end else if (flush_ex) begin
-      // Discard the instruction that was in flight during fetch
+      // Discard the instruction that was in flight during fetch.
+      // Use ex_pc_target as debug PC so waveforms show the redirect address.
       ifid_instr <= 32'h0000_0013;
       ifid_valid <= 1'b0;
-      ifid_pc    <= 32'h0;
+      ifid_pc    <= ex_pc_target;
     end else if (!stall) begin
       ifid_pc    <= pc_q;
       ifid_instr <= imem_rdata;
@@ -509,12 +515,15 @@ module rv32_core (
     end
   end
 
-  // Pre-compute non-load writeback data in EX so MEM/WB only needs one field
+  // Pre-compute non-load writeback data in EX so MEM/WB only needs one field.
+  // For loads (WB_SRC_MEM), the actual data is selected in the MEM stage;
+  // the placeholder value here is overridden by mem_load_data in mem_wb_data.
   always_comb begin
     case (idex_wb_sel)
       WB_SRC_PC4:   ex_wb_data = ex_pc4;
       WB_SRC_IMM_U: ex_wb_data = idex_imm_u;
-      default:      ex_wb_data = ex_alu_y; // WB_SRC_ALU or WB_SRC_MEM (placeholder)
+      WB_SRC_ALU:   ex_wb_data = ex_alu_y;
+      default:      ex_wb_data = ex_alu_y; // WB_SRC_MEM: overridden in MEM stage
     endcase
   end
 
