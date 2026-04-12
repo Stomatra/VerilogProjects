@@ -1,0 +1,16 @@
+# compile verilog/system verilog design source files
+verilog xil_defaultlib  -i "../../../../../rv32/rtl" --include "../../../../../rv32/rtl" \
+"../../../../../rv32/rtl/rv32_alu.v" \
+"../../../../../rv32/rtl/rv32_branch.v" \
+"../../../../../rv32/rtl/rv32_core.v" \
+"../../../../../rv32/rtl/rv32_decode.v" \
+"../../../../../rv32/rtl/rv32_imm.v" \
+"../../../../../rv32/rtl/rv32_regfile.v" \
+"../../../../../rv32/rtl/rv32_top.v" \
+"../../../../../rv32/tb/tb_rv32.v" \
+
+# compile glbl module
+verilog xil_defaultlib "glbl.v"
+
+# Do not sort compile order
+nosort

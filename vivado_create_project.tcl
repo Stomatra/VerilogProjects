@@ -20,9 +20,6 @@ if {[file exists $project_dir]} {
 puts "创建新项目: $project_name"
 create_project $project_name $project_dir -part xc7z020clg484-1
 
-# 设置项目属性
-set_property simulator_language SystemVerilog [current_project]
-
 # 添加 RTL 源文件
 puts "添加 RTL 源文件..."
 add_files -fileset sources_1 \
@@ -45,14 +42,14 @@ set_property top tb_rv32 [get_filesets sim_1]
 set_property top_lib xil_defaultlib [get_filesets sim_1]
 
 # 配置仿真设置
-set_property -name {xsim.simulate.runtime} -value {5000ns} [get_filesets sim_1]
-set_property -name {xsim.compile.additional_flags} -value {-v} [get_filesets sim_1]
+set_property xsim.simulate.runtime 5000ns [get_filesets sim_1]
+set_property xsim.compile.additional_flags -v [get_filesets sim_1]
 
 # 设置 include 路径
 set_property include_dirs $rtl_dir [get_filesets sim_1]
 
 # 保存项目
-save_project_as $project_name $project_dir -force
+save_project
 
 puts "✅ 项目创建成功！"
 puts "项目位置: $project_dir/$project_name.xpr"
