@@ -1,0 +1,53 @@
+#-----------------------------------------------------------
+# Vivado v2018.3 (64-bit)
+# SW Build 2405991 on Thu Dec  6 23:38:27 MST 2018
+# IP Build 2404404 on Fri Dec  7 01:43:56 MST 2018
+# Start of session at: Sun Apr 12 23:27:07 2026
+# Process ID: 40492
+# Current directory: C:/Users/37664/Desktop/code/VerilogProjects
+# Command line: vivado.exe -mode batch -source temp_vivado_run.tcl -log vivado_sim.log -journal vivado_sim.jou
+# Log file: C:/Users/37664/Desktop/code/VerilogProjects/vivado_sim.log
+# Journal file: C:/Users/37664/Desktop/code/VerilogProjects\vivado_sim.jou
+#-----------------------------------------------------------
+source temp_vivado_run.tcl
+# open_project vivado_project/rv32_sim.xpr
+Scanning sources...
+Finished scanning sources
+# puts "启动仿真..."
+启动仿真...
+# launch_simulation -simset sim_1 -mode behavioral
+INFO: [Vivado 12-5682] Launching behavioral simulation in 'C:/Users/37664/Desktop/code/VerilogProjects/vivado_project/rv32_sim.sim/sim_1/behav/xsim'
+INFO: [SIM-utils-51] Simulation object is 'sim_1'
+INFO: [SIM-utils-54] Inspecting design source files for 'tb_rv32' in fileset 'sim_1'...
+INFO: [USF-XSim-97] Finding global include files...
+INFO: [USF-XSim-98] Fetching design files from 'sim_1'...
+INFO: [USF-XSim-2] XSim::Compile design
+INFO: [USF-XSim-61] Executing 'COMPILE and ANALYZE' step in 'C:/Users/37664/Desktop/code/VerilogProjects/vivado_project/rv32_sim.sim/sim_1/behav/xsim'
+"xvlog --incr --relax -prj tb_rv32_vlog.prj"
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_alu.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module rv32_alu
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_branch.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module rv32_branch
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_core.sv" into library xil_defaultlib
+ERROR: [VRFC 10-3195] cannot open include file 'rv32_pkg.vh' [C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_core.sv:1]
+INFO: [VRFC 10-311] analyzing module rv32_core
+ERROR: [VRFC 10-2989] 'OPC_LUI' is not declared [C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_core.sv:322]
+ERROR: [VRFC 10-2989] 'OPC_AUIPC' is not declared [C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_core.sv:327]
+ERROR: [VRFC 10-2989] 'OPC_JAL' is not declared [C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_core.sv:334]
+ERROR: [VRFC 10-2989] 'OPC_JALR' is not declared [C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_core.sv:340]
+ERROR: [VRFC 10-2989] 'OPC_BRANCH' is not declared [C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_core.sv:348]
+ERROR: [VRFC 10-2989] 'OPC_OPIMM' is not declared [C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_core.sv:354]
+ERROR: [VRFC 10-2989] 'OPC_OP' is not declared [C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_core.sv:372]
+ERROR: [VRFC 10-2989] 'OPC_LOAD' is not declared [C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_core.sv:390]
+ERROR: [VRFC 10-2989] 'OPC_STORE' is not declared [C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_core.sv:404]
+ERROR: [VRFC 10-2865] module 'rv32_core' ignored due to previous errors [C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_core.sv:24]
+INFO: [USF-XSim-69] 'compile' step finished in '1' seconds
+INFO: [USF-XSim-99] Step results log file:'C:/Users/37664/Desktop/code/VerilogProjects/vivado_project/rv32_sim.sim/sim_1/behav/xsim/xvlog.log'
+ERROR: [USF-XSim-62] 'compile' step failed with error(s). Please check the Tcl console output or 'C:/Users/37664/Desktop/code/VerilogProjects/vivado_project/rv32_sim.sim/sim_1/behav/xsim/xvlog.log' file for more information.
+ERROR: [Vivado 12-4473] Detected error while running simulation. Please correct the issue and retry this operation.
+ERROR: [Common 17-39] 'launch_simulation' failed due to earlier errors.
+
+    while executing
+"launch_simulation -simset sim_1 -mode behavioral"
+    (file "temp_vivado_run.tcl" line 5)
+INFO: [Common 17-206] Exiting Vivado at Sun Apr 12 23:27:13 2026...

@@ -1,4 +1,4 @@
-`include "rv32_pkg.vh"
+`include "rv32_pkg.svh"
 
 // ============================================================
 // rv32_core - RV32I 5-stage pipeline (IF / ID / EX / MEM / WB)

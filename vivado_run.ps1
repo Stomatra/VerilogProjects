@@ -1,4 +1,4 @@
-# ============================================================
+﻿# ============================================================
 # Vivado 2018 仿真集成脚本
 # 作者: Stomatra
 # 功能: 自动创建 Vivado 项目并运行仿真
@@ -13,7 +13,7 @@ param(
     [switch]$RunSim = $false,
     
     [Parameter(Mandatory=$false)]
-    [string]$HexFile = "tests/addi.hex",
+    [string]$HexFile = "rv32/tests/addi.hex",
     
     [Parameter(Mandatory=$false)]
     [switch]$GUI = $false
@@ -25,8 +25,8 @@ param(
 $vivadoVersion = "2018.3"  # 修改为你的 Vivado 版本
 $projectName = "rv32_sim"
 $projectDir = "vivado_project"
-$rtlDir = "rv32\rtl"
-$tbDir = "rv32\tb"
+$rtlDir = "rv32/rtl"
+$tbDir = "rv32/tb"
 
 # ========================================
 # 函数: 打印彩色信息
@@ -98,22 +98,20 @@ if {[file exists `$project_dir]} {
 puts "创建项目: `$project_name"
 create_project `$project_name `$project_dir -part xc7z020clg484-1
 
-set_property simulator_language SystemVerilog [current_project]
-
 puts "添加源文件..."
 add_files -fileset sources_1 \
-    `$rtl_dir/rv32_pkg.vh \
-    `$rtl_dir/rv32_alu.v \
-    `$rtl_dir/rv32_branch.v \
-    `$rtl_dir/rv32_decode.v \
-    `$rtl_dir/rv32_imm.v \
-    `$rtl_dir/rv32_mem_if.v \
-    `$rtl_dir/rv32_regfile.v \
-    `$rtl_dir/rv32_core.v \
-    `$rtl_dir/rv32_top.v
+    `$rtl_dir/rv32_pkg.svh \
+    `$rtl_dir/rv32_alu.sv \
+    `$rtl_dir/rv32_branch.sv \
+    `$rtl_dir/rv32_decode.sv \
+    `$rtl_dir/rv32_imm.sv \
+    `$rtl_dir/rv32_mem_if.sv \
+    `$rtl_dir/rv32_regfile.sv \
+    `$rtl_dir/rv32_core.sv \
+    `$rtl_dir/rv32_top.sv
 
 puts "添加仿真源文件..."
-add_files -fileset sim_1 `$tb_dir/tb_rv32.v
+add_files -fileset sim_1 `$tb_dir/tb_rv32.sv
 
 set_property top tb_rv32 [get_filesets sim_1]
 set_property top_lib xil_defaultlib [get_filesets sim_1]
