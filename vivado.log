@@ -1,0 +1,18 @@
+#-----------------------------------------------------------
+# Vivado v2018.3 (64-bit)
+# SW Build 2405991 on Thu Dec  6 23:38:27 MST 2018
+# IP Build 2404404 on Fri Dec  7 01:43:56 MST 2018
+# Start of session at: Mon Apr 13 20:59:28 2026
+# Process ID: 17844
+# Current directory: C:/Users/37664/Desktop/code/VerilogProjects
+# Command line: vivado.exe vivado_project/rv32_sim.xpr
+# Log file: C:/Users/37664/Desktop/code/VerilogProjects/vivado.log
+# Journal file: C:/Users/37664/Desktop/code/VerilogProjects\vivado.jou
+#-----------------------------------------------------------
+start_gui
+open_project vivado_project/rv32_sim.xpr
+Scanning sources...
+Finished scanning sources
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1704] No user IP repositories specified
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'E:/dayingyonganzhuang/Vivado/2018.3/data/ip'.

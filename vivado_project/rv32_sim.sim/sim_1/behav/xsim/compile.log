@@ -1,22 +1,18 @@
-INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_alu.v" into library xil_defaultlib
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_alu.sv" into library xil_defaultlib
 INFO: [VRFC 10-311] analyzing module rv32_alu
-ERROR: [VRFC 10-1412] syntax error near begin [C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_alu.v:32]
-ERROR: [VRFC 10-2790] Verilog 2000 keyword begin used in incorrect context [C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_alu.v:32]
-ERROR: [VRFC 10-2934] 'ALU_SUB' is already declared [C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_alu.v:35]
-ERROR: [VRFC 10-1412] syntax error near y [C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_alu.v:35]
-ERROR: [VRFC 10-2934] 'ALU_AND' is already declared [C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_alu.v:36]
-ERROR: [VRFC 10-1412] syntax error near y [C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_alu.v:36]
-ERROR: [VRFC 10-2934] 'ALU_OR' is already declared [C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_alu.v:37]
-ERROR: [VRFC 10-1412] syntax error near y [C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_alu.v:37]
-ERROR: [VRFC 10-2934] 'ALU_XOR' is already declared [C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_alu.v:38]
-ERROR: [VRFC 10-1412] syntax error near y [C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_alu.v:38]
-ERROR: [VRFC 10-2934] 'ALU_SLT' is already declared [C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_alu.v:39]
-ERROR: [VRFC 10-1412] syntax error near y [C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_alu.v:39]
-ERROR: [VRFC 10-2934] 'ALU_SLTU' is already declared [C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_alu.v:40]
-ERROR: [VRFC 10-1412] syntax error near y [C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_alu.v:40]
-ERROR: [VRFC 10-2934] 'ALU_SLL' is already declared [C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_alu.v:41]
-ERROR: [VRFC 10-1412] syntax error near y [C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_alu.v:41]
-ERROR: [VRFC 10-2934] 'ALU_SRL' is already declared [C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_alu.v:42]
-ERROR: [VRFC 10-1412] syntax error near y [C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_alu.v:42]
-ERROR: [VRFC 10-2934] 'ALU_SRA' is already declared [C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_alu.v:43]
-INFO: [#UNDEF] Sorry, too many errors..
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_branch.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module rv32_branch
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_core.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module rv32_core
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_decode.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module rv32_decode
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_imm.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module rv32_imm
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_regfile.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module rv32_regfile
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_top.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module rv32_top
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "C:/Users/37664/Desktop/code/VerilogProjects/rv32/tb/tb_rv32.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module tb_rv32
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/37664/Desktop/code/VerilogProjects/vivado_project/rv32_sim.sim/sim_1/behav/xsim/glbl.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module glbl

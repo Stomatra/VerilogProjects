@@ -2,8 +2,8 @@
 # Vivado v2018.3 (64-bit)
 # SW Build 2405991 on Thu Dec  6 23:38:27 MST 2018
 # IP Build 2404404 on Fri Dec  7 01:43:56 MST 2018
-# Start of session at: Sun Apr 12 22:56:17 2026
-# Process ID: 44936
+# Start of session at: Sun Apr 12 23:26:13 2026
+# Process ID: 25564
 # Current directory: C:/Users/37664/Desktop/code/VerilogProjects
 # Command line: vivado.exe -mode batch -source temp_vivado_create.tcl -log vivado_create.log -journal vivado_create.jou
 # Log file: C:/Users/37664/Desktop/code/VerilogProjects/vivado_create.log
@@ -24,21 +24,21 @@ source temp_vivado_create.tcl
 # puts "添加源文件..."
 添加源文件...
 # add_files -fileset sources_1 \
-#     $rtl_dir/rv32_pkg.vh \
-#     $rtl_dir/rv32_alu.v \
-#     $rtl_dir/rv32_branch.v \
-#     $rtl_dir/rv32_decode.v \
-#     $rtl_dir/rv32_imm.v \
-#     $rtl_dir/rv32_mem_if.v \
-#     $rtl_dir/rv32_regfile.v \
-#     $rtl_dir/rv32_core.v \
-#     $rtl_dir/rv32_top.v
+#     $rtl_dir/rv32_pkg.svh \
+#     $rtl_dir/rv32_alu.sv \
+#     $rtl_dir/rv32_branch.sv \
+#     $rtl_dir/rv32_decode.sv \
+#     $rtl_dir/rv32_imm.sv \
+#     $rtl_dir/rv32_mem_if.sv \
+#     $rtl_dir/rv32_regfile.sv \
+#     $rtl_dir/rv32_core.sv \
+#     $rtl_dir/rv32_top.sv
 # puts "添加仿真源文件..."
 添加仿真源文件...
-# add_files -fileset sim_1 $tb_dir/tb_rv32.v
+# add_files -fileset sim_1 $tb_dir/tb_rv32.sv
 # set_property top tb_rv32 [get_filesets sim_1]
 # set_property top_lib xil_defaultlib [get_filesets sim_1]
 # set_property include_dirs $rtl_dir [get_filesets sim_1]
 # save_project_as $project_name $project_dir -force
 ERROR: [Coretcl 2-101] Project 'C:/Users/37664/Desktop/code/VerilogProjects/vivado_project/rv32_sim.xpr' is already open.
-INFO: [Common 17-206] Exiting Vivado at Sun Apr 12 22:56:19 2026...
+INFO: [Common 17-206] Exiting Vivado at Sun Apr 12 23:26:15 2026...

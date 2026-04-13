@@ -28,15 +28,16 @@ set_property default_lib xil_defaultlib [current_project]
 set_property target_language Verilog [current_project]
 set_property ip_output_repo c:/Users/37664/Desktop/code/VerilogProjects/vivado_project/rv32_sim.cache/ip [current_project]
 set_property ip_cache_permissions {read write} [current_project]
-read_verilog C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_pkg.vh
-read_verilog -library xil_defaultlib {
-  C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_alu.v
-  C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_branch.v
-  C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_core.v
-  C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_decode.v
-  C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_imm.v
-  C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_regfile.v
-  C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_top.v
+read_verilog C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_pkg.svh
+set_property file_type "Verilog Header" [get_files C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_pkg.svh]
+read_verilog -library xil_defaultlib -sv {
+  C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_alu.sv
+  C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_branch.sv
+  C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_core.sv
+  C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_decode.sv
+  C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_imm.sv
+  C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_regfile.sv
+  C:/Users/37664/Desktop/code/VerilogProjects/rv32/rtl/rv32_top.sv
 }
 # Mark all dcp files as not used in implementation to prevent them from being
 # stitched into the results of this synthesis run. Any black boxes in the

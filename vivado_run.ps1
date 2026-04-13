@@ -100,18 +100,18 @@ create_project `$project_name `$project_dir -part xc7z020clg484-1
 
 puts "添加源文件..."
 add_files -fileset sources_1 \
-    `$rtl_dir/rv32_pkg.vh \
-    `$rtl_dir/rv32_alu.v \
-    `$rtl_dir/rv32_branch.v \
-    `$rtl_dir/rv32_decode.v \
-    `$rtl_dir/rv32_imm.v \
-    `$rtl_dir/rv32_mem_if.v \
-    `$rtl_dir/rv32_regfile.v \
-    `$rtl_dir/rv32_core.v \
-    `$rtl_dir/rv32_top.v
+    `$rtl_dir/rv32_pkg.svh \
+    `$rtl_dir/rv32_alu.sv \
+    `$rtl_dir/rv32_branch.sv \
+    `$rtl_dir/rv32_decode.sv \
+    `$rtl_dir/rv32_imm.sv \
+    `$rtl_dir/rv32_mem_if.sv \
+    `$rtl_dir/rv32_regfile.sv \
+    `$rtl_dir/rv32_core.sv \
+    `$rtl_dir/rv32_top.sv
 
 puts "添加仿真源文件..."
-add_files -fileset sim_1 `$tb_dir/tb_rv32.v
+add_files -fileset sim_1 `$tb_dir/tb_rv32.sv
 
 set_property top tb_rv32 [get_filesets sim_1]
 set_property top_lib xil_defaultlib [get_filesets sim_1]

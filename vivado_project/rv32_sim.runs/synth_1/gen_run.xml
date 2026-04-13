@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<GenRun Id="synth_1" LaunchPart="xc7z020clg484-1" LaunchTime="1776006422">
+<GenRun Id="synth_1" LaunchPart="xc7z020clg484-1" LaunchTime="1776085479">
   <File Type="PA-TCL" Name="rv32_top.tcl"/>
   <File Type="RDS-PROPCONSTRS" Name="rv32_top_drc_synth.rpt"/>
   <File Type="REPORTS-TCL" Name="rv32_top_reports.tcl"/>
@@ -11,62 +11,62 @@
   <File Type="VDS-TIMING-PB" Name="rv32_top_timing_summary_synth.pb"/>
   <FileSet Name="sources" Type="DesignSrcs" RelSrcDir="$PSRCDIR/sources_1">
     <Filter Type="Srcs"/>
-    <File Path="$PPRDIR/../rv32/rtl/rv32_alu.v">
+    <File Path="$PPRDIR/../rv32/rtl/rv32_alu.sv">
       <FileInfo>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../rv32/rtl/rv32_branch.v">
+    <File Path="$PPRDIR/../rv32/rtl/rv32_branch.sv">
       <FileInfo>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../rv32/rtl/rv32_pkg.vh">
+    <File Path="$PPRDIR/../rv32/rtl/rv32_pkg.svh">
       <FileInfo>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../rv32/rtl/rv32_core.v">
-      <FileInfo>
-        <Attr Name="UsedIn" Val="synthesis"/>
-        <Attr Name="UsedIn" Val="implementation"/>
-        <Attr Name="UsedIn" Val="simulation"/>
-      </FileInfo>
-    </File>
-    <File Path="$PPRDIR/../rv32/rtl/rv32_decode.v">
+    <File Path="$PPRDIR/../rv32/rtl/rv32_core.sv">
       <FileInfo>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../rv32/rtl/rv32_imm.v">
+    <File Path="$PPRDIR/../rv32/rtl/rv32_decode.sv">
       <FileInfo>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../rv32/rtl/rv32_regfile.v">
+    <File Path="$PPRDIR/../rv32/rtl/rv32_imm.sv">
       <FileInfo>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../rv32/rtl/rv32_top.v">
+    <File Path="$PPRDIR/../rv32/rtl/rv32_regfile.sv">
       <FileInfo>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../rv32/rtl/rv32_mem_if.v">
+    <File Path="$PPRDIR/../rv32/rtl/rv32_top.sv">
+      <FileInfo>
+        <Attr Name="UsedIn" Val="synthesis"/>
+        <Attr Name="UsedIn" Val="implementation"/>
+        <Attr Name="UsedIn" Val="simulation"/>
+      </FileInfo>
+    </File>
+    <File Path="$PPRDIR/../rv32/rtl/rv32_mem_if.sv">
       <FileInfo>
         <Attr Name="AutoDisabled" Val="1"/>
         <Attr Name="UsedIn" Val="synthesis"/>
