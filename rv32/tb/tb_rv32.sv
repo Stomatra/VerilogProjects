@@ -9,9 +9,8 @@
 //   - imem_ready = 1, imem_rdata_valid = imem_valid  （组合逻辑）
 //   - dmem_ready = 1
 //   - dmem_rdata_valid = dmem_valid & ~dmem_we        （组合逻辑）
-//   当前核心不处理冒险，因此测试程序会显式插入：
-//   - 数据相关气泡：寄存器写后至少 3 条 NOP
-//   - 控制延迟槽：分支/跳转后至少 2 条 NOP
+//   标准 RV32I 指令测试仍保留显式 NOP，便于兼容旧波形与文档；
+//   额外的 hazard_*.hex 用例会直接验证前递、load-use stall 与控制冲刷。
 //
 // PASS/FAIL 约定（与之前一致）：
 //   ram[1] == 1           -> PASS
